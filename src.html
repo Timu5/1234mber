@@ -1,0 +1,121 @@
+<canvas id=p width=360 height=360></canvas>
+<script>
+c=p.getContext('2d');
+
+onkeydown=(x)=>k[x.which]=1;
+onkeyup=(x)=>k[x.which]=0;
+
+for(i in c)c[i[0]+(i[6]||i[2])]=c[i];
+
+C=(q)=>c.fillStyle="#"+q;
+r=Math.random;
+
+a=new AudioContext();
+o=a.createOscillator();
+//o.type='square'; // --> z braku miejsca poszlo do kosza, a szkoda bo dawalo lepszy klimat 
+o.connect(a.destination);
+o.start();
+
+s=0;
+
+g=()=>
+{
+	x=y=8;
+	w=W=0;
+	l=[];
+	k=[];
+	e=[];
+	v=[];
+	b=[];
+	for(i=15;i--;)
+	{
+		l[i] = [];
+		for(j=15;j--;)
+			l[i][j]=i%14<1||j%14<1||!(j%2+i%2)?1:r()>.7?2:r()>.95?(X=i*8,Y=j*8,0):0;
+	}
+	l[1][1]=l[2][1]=l[1][2]=0;
+}
+g();
+
+setInterval(()=>
+{
+	o.frequency.value=s%10>7?[392,415,392,349][s/60|0]:0;
+	if(++s>239)s=0;
+	
+	if(!w)
+	{
+		if(k[32]*!b[0]) b=[x,y,50];
+		if(k[39]*!l[x/8+1][y/8])w=1;
+		else if(k[37]*!l[x/8-1][y/8])w=2;
+		else if(k[38]*!l[x/8][y/8-1])w=3;
+		else if(k[40]*!l[x/8][y/8+1])w=4;
+	}
+	
+	if(!W)
+	{
+		if(r()>.5&&!l[X/8+1][Y/8])W=1;
+		else if(r()>.5&&!l[X/8-1][Y/8])W=2;
+		else if(r()>.5&&!l[X/8][Y/8-1])W=3;
+		else if(!l[X/8][Y/8+1])W=4;
+	}
+
+	w>3?y++:w>2?y--:w>1?x--:w>0?x++:0;
+	W>3?Y++:W>2?Y--:W>1?X--:W>0?X++:0;
+	  
+	if(y%8+x%8<1)w=0;
+	if(Y%8+X%8<1)W=0;
+	if(x==X&&y==Y)g();
+	
+	p.width=600;
+	c.sa(3,3);
+	
+	v=0;
+	for(i=15;i--;)
+		for(j=15;j--;)
+			if(l[i][j] > 1) c.fc(i*8,j*8,7,7,C("777"),v++);
+			else if(l[i][j] > 0) c.fc(i*8,j*8,7,7,C("000"));
+	if(!v)g();
+	
+	if(b[0]>0)
+	{
+		c.ba(C("000")),c.fill(c.ac(b[0]+4,b[1]+4,3,0,7));
+		
+		if(--b[2]<1)
+		{	
+			e.push([b[0],b[1],3,0]);
+			o.frequency.value=880;
+			b[0]=0;
+		}
+	}
+	
+	c.fc(x,y,7,7,C("090"));
+	c.fc(X,Y,7,7,C("009"));
+	
+	C("F00");
+	for(i in e)
+	{
+		if(t=e[i])
+			if(t[2]-- > 0)
+			{
+				c.fc(t[0],t[1],7,7);
+				if(x==t[0]&&y==t[1])g();
+			}
+			else
+			{
+				U = [t[0],t[1]-8,3,4];
+				I = [t[0]-8,t[1],3,3];
+				O = [t[0],t[1]+8,3,2];
+				P = [t[0]+8,t[1],3,1];
+				if(l[t[0]/8][t[1]/8] < 1)
+					if(t[3]>3) e.push(U);
+					else if(t[3]>2) e.push(I);
+					else if(t[3]>1) e.push(O);
+					else if(t[3]>0) e.push(P);
+					else e.push(U), e.push(I), e.push(O), e.push(P);
+				else if(l[t[0]/8][t[1]/8]>1)
+					l[t[0]/8][t[1]/8]=0;
+				delete e[i];
+			}
+	}
+},20);
+</script>
